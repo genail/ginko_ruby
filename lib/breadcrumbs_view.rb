@@ -67,7 +67,7 @@ class BreadcrumbsView
     menu = Gtk::Menu.new
     
     @model.contents(pathname).each do |entry|
-      menu.append(Gtk::MenuItem.new(entry.basename))
+      menu.append(Gtk::MenuItem.new(entry.basename.to_s))
     end
     
     
