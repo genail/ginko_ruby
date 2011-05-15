@@ -23,38 +23,51 @@ class DirectoryView
   extend Callbacks
   callback :on_key_pressed
   
-  def initialize(directory_model)
+  def initialize(directory_model, breadcrumbs_widget)
     @directory_model = directory_model
+    build_ui(breadcrumbs_widget)
+  end
+  
+  def build_ui(breadcrumbs_widget)
+    build_ui_structure(breadcrumbs_widget)
     
-    @widget = Gtk::ScrolledWindow.new();
-    
-    @view = Gtk::TreeView.new(directory_model.store)
-    @widget.add(@view)
-    
-    @view.selection.mode = Gtk::SELECTION_SINGLE
+    @treeview.selection.mode = Gtk::SELECTION_SINGLE
 
     renderer = Gtk::CellRendererText.new
 
     col = Gtk::TreeViewColumn.new("Filename", renderer,
                               :background => 0, :weight => 1, :text => 2)
-    @view.append_column(col)
+    @treeview.append_column(col)
     
-    @view.add_events(Gdk::Event::KEY_PRESS)
-    @view.signal_connect("key-press-event") do |w, e|
+    @treeview.add_events(Gdk::Event::KEY_PRESS)
+    @treeview.signal_connect("key-press-event") do |w, e|
       #p "#{e.keyval}, Gdk::Keyval::GDK_#{Gdk::Keyval.to_name(e.keyval)}"
       on_key_pressed(e)
     end
     
-    @view.show_all
+    @treeview.show_all
+  end
+  
+  def build_ui_structure(breadcrumbs_widget)
+    vbox = Gtk::VBox.new;
+    @widget = vbox
+    
+    vbox.pack_start(breadcrumbs_widget, false);
+    
+    scrolls = Gtk::ScrolledWindow.new();
+    vbox.pack_start(scrolls);
+    
+    @treeview = Gtk::TreeView.new(@directory_model.store)
+    scrolls.add(@treeview)
   end
   
   # TreeIter
   def cursor
-    selected = @view.selection.selected
+    selected = @treeview.selection.selected
     if selected.nil?
       return nil
     else
-      return Cursor.new(@view, @view.selection.selected)
+      return Cursor.new(@treeview, @treeview.selection.selected)
     end
   end
 end
