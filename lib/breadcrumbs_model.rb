@@ -1,8 +1,11 @@
 require 'pathname'
 require 'callbacks'
 
+require 'preconditions'
+
 class BreadcrumbsModel
   extend Callbacks
+  include Preconditions
   
   callback :on_path_changed
   
@@ -29,7 +32,11 @@ class BreadcrumbsModel
     end
     
     components.reverse
-    
+  end
+  
+  def contents(pathname)
+    check_argument(pathname.kind_of? Pathname)
+    pathname.children.sort { |a, b| a <=> b }
   end
   
 end
