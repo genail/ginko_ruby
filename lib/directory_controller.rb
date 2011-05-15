@@ -19,9 +19,14 @@ class DirectoryController
         when Gdk::Keyval::GDK_Insert
           @model.toggle_selection(cursor.iter)
           cursor.move_down
+          
         when Gdk::Keyval::GDK_Return
           iter = cursor.iter
           path = @model.enter(iter)
+          @breadcrumbs.path = path
+        
+        when Gdk::Keyval::GDK_BackSpace
+          path = @model.leave
           @breadcrumbs.path = path
         end
       end

@@ -77,6 +77,14 @@ class DirectoryModel
     end
   end
   
+  def leave
+    unless @pathname.root?
+      enter(@pathname.parent)
+    end
+    
+    @pathname
+  end
+  
   #######
   private
   #######
