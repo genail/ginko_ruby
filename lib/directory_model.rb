@@ -35,7 +35,7 @@ class DirectoryModel
     end
     
     def filename=(text)
-      @iter[COL_FILENAME] = text
+      @iter[COL_FILENAME] = text.to_s
     end
     
     def selected
