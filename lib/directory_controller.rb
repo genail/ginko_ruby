@@ -14,11 +14,17 @@ class DirectoryController
     @view = DirectoryView.new(@model, @bc_view.widget)
     
     @view.on_key_pressed do |e|
-      if e.keyval == Gdk::Keyval::GDK_Insert
-        cursor = @view.cursor
-        unless cursor.nil?
+      cursor = @view.cursor
+      
+      unless cursor.nil?
+        case e.keyval
+        when Gdk::Keyval::GDK_Insert
           @model.toggle_selection(cursor.iter)
           cursor.move_down
+        when Gdk::Keyval::GDK_Return
+          iter = cursor.iter
+          path = @model.enter(iter)
+          @bc_model.path = path
         end
       end
     end

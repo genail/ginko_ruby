@@ -20,12 +20,15 @@ class BreadcrumbsView
   
   def refresh
     @added_widgets.each { |w| @hbox.remove w }
+    @added_widgets.clear
+    
     @model.path_components.each do |comp|
       add_button(">")
       add_button(comp);
     end
     
     add_button(">")
+    @widget.show_all
   end
   
   def add_button(label)

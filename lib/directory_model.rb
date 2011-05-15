@@ -1,6 +1,11 @@
 require 'glib2'
+require 'pathname'
+
+require 'preconditions'
 
 class DirectoryModel
+  include Preconditions
+  
   COL_COLOR = 0
   COL_WEIGHT = 1
   COL_FILENAME = 2
@@ -10,14 +15,19 @@ class DirectoryModel
   class Entry
     def initialize(arg)
       if arg.kind_of? Gtk::TreeIter
+        # existing entry
         @iter = arg
       elsif arg.kind_of? Gtk::TreeStore
+        # new entry
         @iter = arg.append(nil)
+        @iter[COL_WEIGHT] = 400
       else
         raise "unknown type: #{arg.class}"
       end
       
-      @iter[COL_WEIGHT] = 400
+      #if arg.kind_of? Gtk::TreeStore
+      #  @iter[COL_WEIGHT] = 400
+      #end
     end
     
     def filename
@@ -49,16 +59,7 @@ class DirectoryModel
   def initialize
     @store = Gtk::TreeStore.new(String, Integer, String)
     
-    entry = Entry.new(@store)
-    entry.filename = "first"
-    
-    entry = Entry.new(@store)
-    entry.filename = "second"
-    
-    entry = Entry.new(@store)
-    entry.filename = "third"
-    
-    change_directory('/')
+    change_directory(Pathname.new('/'))
   end
   
   def toggle_selection(iter)
@@ -66,14 +67,55 @@ class DirectoryModel
     entry.toggle_selection
   end
   
-  def change_directory(filename)
-    @store.clear
-    raise "not a directory" unless File.directory? filename
+  def enter(iter)
+    entry = Entry.new(iter)
+    new_path = Pathname.new(@path.to_s + File::SEPARATOR + entry.filename).realpath
     
-    dir = Dir.new(filename)
-    dir.each do |child|
-      entry = Entry.new(@store)
-      entry.filename = child
+    
+    if new_path.directory?
+      change_directory(new_path)
     end
+    
+    @path
+  end
+  
+  def change_directory(path)
+    lock
+    begin
+    
+      check_argument(path.kind_of? Pathname)
+      
+      @store.clear
+      raise "not a directory" unless path.directory?
+      
+      @path = path
+      
+      path.each_entry do |child|
+        entry = Entry.new(@store)
+        entry.filename = child
+      end
+    ensure
+      unlock
+    end
+  end
+  
+  #######
+  private
+  #######
+  
+  # locking should be used when editing tree contents
+  # not locked editing will be slower and may cause unexpected errors
+  def lock
+    @store.set_sort_column_id(-2, Gtk::SORT_ASCENDING);
+  end
+  
+  def unlock
+    @store.set_sort_func(COL_FILENAME) do |iter1, iter2|
+      entry1 = Entry.new(iter1)
+      entry2 = Entry.new(iter2)
+      
+      entry1.filename <=> entry2.filename
+    end
+    @store.set_sort_column_id(COL_FILENAME, Gtk::SORT_ASCENDING)
   end
 end

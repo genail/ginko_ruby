@@ -6,7 +6,7 @@ class BreadcrumbsModel
   callback :on_path_changed
   
   def initialize
-    @path = '/home/chudy'
+    @path = Pathname.new('/')
   end
   
   def path=(path)
@@ -17,7 +17,7 @@ class BreadcrumbsModel
   attr_reader :path
   
   def path_components
-    @path.split(File::SEPARATOR).delete_if {|x| x.empty?}
+    @path.to_s.split(File::SEPARATOR).delete_if {|x| x.empty?}
   end
   
 end
