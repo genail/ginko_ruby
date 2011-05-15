@@ -1,3 +1,4 @@
+require 'pathname'
 require 'callbacks'
 
 class BreadcrumbsModel
@@ -17,7 +18,18 @@ class BreadcrumbsModel
   attr_reader :path
   
   def path_components
-    @path.to_s.split(File::SEPARATOR).delete_if {|x| x.empty?}
+    components = []
+    
+    dir = @path
+    while not dir.root?
+      components << dir
+      
+      dir_s, base_s = dir.split
+      dir = Pathname.new(dir_s)
+    end
+    
+    components.reverse
+    
   end
   
 end

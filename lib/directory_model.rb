@@ -59,7 +59,7 @@ class DirectoryModel
   def initialize
     @store = Gtk::TreeStore.new(String, Integer, String)
     
-    change_directory(Pathname.new('/'))
+    enter(Pathname.new('/'))
   end
   
   def toggle_selection(iter)
@@ -67,30 +67,45 @@ class DirectoryModel
     entry.toggle_selection
   end
   
-  def enter(iter)
-    entry = Entry.new(iter)
-    new_path = Pathname.new(@path.to_s + File::SEPARATOR + entry.filename).realpath
-    
-    
-    if new_path.directory?
-      change_directory(new_path)
+  def enter(place)
+    if place.kind_of? Gtk::TreeIter
+      enter_iter(place)
+    elsif place.kind_of? Pathname
+      enter_pathname(place);
+    else
+      raise "unknown type: #{place.class}"
     end
-    
-    @path
   end
   
-  def change_directory(path)
+  #######
+  private
+  #######
+  
+  def enter_iter(iter)
+    check_argument(iter.kind_of? Gtk::TreeIter)
+    
+    entry = Entry.new(iter)
+    new_path = Pathname.new(@pathname.to_s + File::SEPARATOR + entry.filename).realpath
+    
+    if new_path.directory?
+      enter(new_path)
+    end
+    
+    @pathname
+  end
+  
+  def enter_pathname(pathname)
+    check_argument(pathname.kind_of? Pathname)
+    
     lock
     begin
-    
-      check_argument(path.kind_of? Pathname)
       
       @store.clear
-      raise "not a directory" unless path.directory?
+      raise "not a directory" unless pathname.directory?
       
-      @path = path
+      @pathname = pathname
       
-      path.each_entry do |child|
+      pathname.each_entry do |child|
         entry = Entry.new(@store)
         entry.filename = child
       end
@@ -98,10 +113,6 @@ class DirectoryModel
       unlock
     end
   end
-  
-  #######
-  private
-  #######
   
   # locking should be used when editing tree contents
   # not locked editing will be slower and may cause unexpected errors
