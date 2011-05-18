@@ -33,7 +33,10 @@ class DirectoryController
     end
     
     @breadcrumbs.on_breadcrumb_pressed do |pathname|
-      @model.enter(pathname)
+      if pathname.directory?
+        @model.enter(pathname)
+        @breadcrumbs.path = pathname
+      end
     end
     
   end

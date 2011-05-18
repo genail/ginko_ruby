@@ -10,8 +10,6 @@ class BreadcrumbsView
   
   # params: Pathname
   callback :on_breadcrumb_pressed
-  # params: Pathname @return Pathname array
-  callback :on_content_request
   
   def initialize(breadcrumbs_model)
     @model = breadcrumbs_model
@@ -67,7 +65,9 @@ class BreadcrumbsView
     menu = Gtk::Menu.new
     
     @model.contents(pathname).each do |entry|
-      menu.append(Gtk::MenuItem.new(entry.basename.to_s))
+      item = Gtk::MenuItem.new(entry.basename.to_s)
+      item.signal_connect("activate") { on_breadcrumb_pressed(entry) }
+      menu.append(item)
     end
     
     
