@@ -1,6 +1,7 @@
 module Ginko
 end
 
+require 'context'
 require 'directory/controller'
 
 module Ginko
@@ -8,7 +9,11 @@ module Ginko
   window.set_default_size(320, 240);
   
   window.signal_connect("delete_event") { Gtk.main_quit; exit! }
-  directory = Directory::Controller.new
+  
+  context = Context.new
+  context.main_window = window
+  
+  directory = Directory::Controller.new(context)
   window.add(directory.widget);
   window.show_all
   

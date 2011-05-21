@@ -8,8 +8,8 @@ require 'breadcrumbs/controller'
 module Ginko::Directory
 
   class Controller
-    def initialize
-      @breadcrumbs = Ginko::Breadcrumbs::Controller.new
+    def initialize(context)
+      @breadcrumbs = Ginko::Breadcrumbs::Controller.new(context)
       
       @model = Model.new
       @view = View.new(@model, @breadcrumbs.widget)

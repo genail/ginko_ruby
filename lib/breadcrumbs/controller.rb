@@ -1,3 +1,5 @@
+require 'gtk2'
+
 require 'callbacks'
 require 'breadcrumbs/model'
 require 'breadcrumbs/view'
@@ -10,9 +12,9 @@ module Ginko::Breadcrumbs
     # params: GLib::File
     callback :on_breadcrumb_pressed
     
-    def initialize
+    def initialize(context)
       @model = Model.new
-      @view = View.new(@model)
+      @view = View.new(context, @model)
       
       @view.on_breadcrumb_pressed { |p| on_breadcrumb_pressed(p) }
     end

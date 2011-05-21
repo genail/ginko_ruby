@@ -39,18 +39,19 @@ module Ginko::Breadcrumbs
         @comp.model.clear
       end
       
-      def rebuild(pathname)
-        check_argument(pathname.kind_of? Pathname)
+      def rebuild(file)
+        check_argument(file.kind_of? GLib::File)
         clear
         
-        if not pathname.exist?
+        if not file.query_exists?
           return
         end
         
-        pathname.each_entry do |entry|
-          basename = entry.basename
-          unless basename == "." or basename == ".."
-            add((pathname + entry).realpath.to_s + "/")
+        file.each do |entry|
+          name = entry.name
+          unless name == "." or name == ".."
+            child = file.get_child(name)
+            add(child.path)
           end
         end
       end
@@ -64,11 +65,12 @@ module Ginko::Breadcrumbs
     # params: File
     callback :on_breadcrumb_pressed
     
-    def initialize(breadcrumbs_model)
+    def initialize(context, breadcrumbs_model)
       @mode = :buttons
       
       @model = breadcrumbs_model
       @model.on_file_changed { refresh }
+      @context = context
       
       @added_widgets = []
       
@@ -97,6 +99,18 @@ module Ginko::Breadcrumbs
         on_breadcrumb_pressed(GLib::File.new_for_path(@entry.text))
       end
       @comp.selected { |path| p path; on_breadcrumb_pressed(GLib::File.new_for_path(path)) }
+      
+      register_accelerators
+    end
+    
+    def register_accelerators
+      @context.add_accel(Gdk::Keyval::GDK_E, Gdk::Window::MOD1_MASK, 0) do
+        if @mode == :buttons
+          toggle_mode
+        end
+        
+        @entry.grab_focus
+      end
     end
     
     def toggle_mode
@@ -144,7 +158,7 @@ module Ginko::Breadcrumbs
     
     def refresh_text_mode
       @hbox.pack_start(@entry)
-      @entry.text = @model.path
+      @entry.text = @model.file.path
       @widget.show_all
       
       refresh_completion
@@ -169,7 +183,7 @@ module Ginko::Breadcrumbs
         #puts "comp dir changed to #{@comp_workdir}"
         #$stdout.flush
         
-        @comp.rebuild(Pathname.new(@comp_workdir))
+        @comp.rebuild(GLib::File.new_for_path(@comp_workdir))
       end
     end
     
