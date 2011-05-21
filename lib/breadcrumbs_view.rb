@@ -1,4 +1,5 @@
 require 'gtk2'
+require 'gio2'
 require 'pathname'
 
 require 'callbacks'
@@ -58,14 +59,14 @@ class BreadcrumbsView
   # :buttons or :text
   attr_accessor :mode
   
-  # params: Pathname
+  # params: File
   callback :on_breadcrumb_pressed
   
   def initialize(breadcrumbs_model)
     @mode = :buttons
     
     @model = breadcrumbs_model
-    @model.on_path_changed { refresh }
+    @model.on_file_changed { refresh }
     
     @added_widgets = []
     
@@ -91,9 +92,9 @@ class BreadcrumbsView
     
     @entry.signal_connect("changed") { refresh_completion }
     @entry.signal_connect("activate") do
-      on_breadcrumb_pressed(Pathname.new(@entry.text))
+      on_breadcrumb_pressed(GLib::File.new_for_path(@entry.text))
     end
-    @comp.selected { |path| p path; on_breadcrumb_pressed(Pathname.new(path)) }
+    @comp.selected { |path| p path; on_breadcrumb_pressed(GLib::File.new_for_path(path)) }
   end
   
   def toggle_mode
@@ -184,14 +185,14 @@ class BreadcrumbsView
     return bt
   end
   
-  def display_menu(pathname, event)
-    if pathname.nil?
-      pathname = Pathname.new('/')
+  def display_menu(file, event)
+    if file.nil?
+      file = GLib::File.new_for_path('/')
     end
     
     menu = Gtk::Menu.new
     
-    @model.contents(pathname).each do |entry|
+    @model.contents(file).each do |entry|
       item = Gtk::MenuItem.new(entry.basename.to_s)
       item.signal_connect("activate") { on_breadcrumb_pressed(entry) }
       menu.append(item)

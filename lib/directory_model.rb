@@ -1,5 +1,4 @@
-require 'glib2'
-require 'pathname'
+require 'gio2'
 
 require 'preconditions'
 
@@ -59,7 +58,7 @@ class DirectoryModel
   def initialize
     @store = Gtk::TreeStore.new(String, Integer, String)
     
-    enter(Pathname.new('/'))
+    enter(GLib::File.new_for_path("/"))
   end
   
   def toggle_selection(iter)
@@ -70,19 +69,19 @@ class DirectoryModel
   def enter(place)
     if place.kind_of? Gtk::TreeIter
       enter_iter(place)
-    elsif place.kind_of? Pathname
-      enter_pathname(place);
+    elsif place.kind_of? GLib::File
+      enter_file(place)
     else
       raise "unknown type: #{place.class}"
     end
   end
   
   def leave
-    unless @pathname.root?
-      enter(@pathname.parent)
+    if @file.has_parent?(nil)
+      enter(@file.parent)
     end
     
-    @pathname
+    @file
   end
   
   #######
@@ -93,29 +92,29 @@ class DirectoryModel
     check_argument(iter.kind_of? Gtk::TreeIter)
     
     entry = Entry.new(iter)
-    new_path = Pathname.new(@pathname.to_s + File::SEPARATOR + entry.filename).realpath
+    new_file = @file.get_child(entry.filename)
     
-    if new_path.directory?
-      enter(new_path)
+    if new_file.query_info.directory?
+      enter(new_file)
     end
     
-    @pathname
+    new_file
   end
   
-  def enter_pathname(pathname)
-    check_argument(pathname.kind_of? Pathname)
+  def enter_file(file)
+    check_argument(file.kind_of? GLib::File)
     
     lock
     begin
       
       @store.clear
-      raise "not a directory" unless pathname.directory?
+      raise "not a directory" unless file.query_file_type == GLib::File::TYPE_DIRECTORY
       
-      @pathname = pathname
+      @file = file
       
-      pathname.each_entry do |child|
+      file.each do |fileinfo|
         entry = Entry.new(@store)
-        entry.filename = child
+        entry.filename = fileinfo.display_name
       end
     ensure
       unlock

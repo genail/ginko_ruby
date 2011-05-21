@@ -1,4 +1,5 @@
 require 'gtk2'
+require 'gio2'
 
 require 'directory_model'
 require 'directory_view'
@@ -22,20 +23,20 @@ class DirectoryController
           
         when Gdk::Keyval::GDK_Return
           iter = cursor.iter
-          path = @model.enter(iter)
-          @breadcrumbs.path = path
+          file = @model.enter(iter)
+          @breadcrumbs.file = file
         
         when Gdk::Keyval::GDK_BackSpace
-          path = @model.leave
-          @breadcrumbs.path = path
+          file = @model.leave
+          @breadcrumbs.file = file
         end
       end
     end
     
-    @breadcrumbs.on_breadcrumb_pressed do |pathname|
-      if pathname.directory?
-        @model.enter(pathname)
-        @breadcrumbs.path = pathname
+    @breadcrumbs.on_breadcrumb_pressed do |file|
+      if file.query_info.directory?
+        @model.enter(file)
+        @breadcrumbs.file = file
       end
     end
     

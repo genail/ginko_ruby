@@ -1,4 +1,4 @@
-require 'pathname'
+require 'gio2'
 require 'callbacks'
 
 require 'preconditions'
@@ -7,36 +7,43 @@ class BreadcrumbsModel
   extend Callbacks
   include Preconditions
   
-  callback :on_path_changed
+  callback :on_file_changed
   
   def initialize
-    @path = Pathname.new('/')
+    @file = GLib::File.new_for_path("/")
   end
   
-  def path=(path)
-    @path = path
-    on_path_changed
+  def file=(file)
+    check_argument(!file.nil?)
+    
+    @file = file
+    on_file_changed
   end
   
-  attr_reader :path
+  attr_reader :file
   
   def path_components
     components = []
     
-    dir = @path
-    while not dir.root?
+    dir = @file
+    while dir.has_parent?(nil)
       components << dir
       
-      dir_s, base_s = dir.split
-      dir = Pathname.new(dir_s)
+      dir = dir.parent
     end
     
     components.reverse
   end
   
-  def contents(pathname)
-    check_argument(pathname.kind_of? Pathname)
-    pathname.children.sort { |a, b| a <=> b }
+  def contents(file)
+    check_argument(file.kind_of? GLib::File)
+    c = []
+    
+    file.each do |fileinfo|
+      c << file.get_child(fileinfo.name)
+    end
+    
+    c.sort { |a, b| a.basename <=> b.basename }
   end
   
 end

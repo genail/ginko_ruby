@@ -5,7 +5,7 @@ require 'breadcrumbs_view'
 class BreadcrumbsController
   extend Callbacks
   
-  # params: Pathname
+  # params: GLib::File
   callback :on_breadcrumb_pressed
   
   def initialize
@@ -19,7 +19,7 @@ class BreadcrumbsController
     @view.widget
   end
   
-  def path=(path)
-    @model.path = path
+  def file=(file)
+    @model.file = file
   end
 end
