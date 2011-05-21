@@ -25,8 +25,14 @@ module Ginko::Directory
             
           when Gdk::Keyval::GDK_Return
             iter = cursor.iter
-            file = @model.enter(iter)
-            @breadcrumbs.file = file
+            file = @model.iter_to_file(iter)
+            
+            if file.query_info.directory?
+              @model.enter(file)
+              @breadcrumbs.file = file
+            else
+              launch(file)
+            end
           
           when Gdk::Keyval::GDK_BackSpace
             file = @model.leave
@@ -46,6 +52,19 @@ module Ginko::Directory
     
     def widget
       @view.widget
+    end
+    
+    #######
+    private
+    #######
+    
+    def launch(file)
+      content_type = file.query_info.content_type
+      apps_all = GLib::AppInfo::get_all_for_type(content_type)
+      apps_all.each { |a| p a.name }
+      
+      default_app = GLib::AppInfo::get_default_for_type(content_type)
+      p "default: #{default_app.name}"
     end
     
   end # class

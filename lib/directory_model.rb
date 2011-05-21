@@ -68,14 +68,18 @@ module Ginko::Directory
       entry.toggle_selection
     end
     
+    def iter_to_file(iter)
+      check_argument(iter.kind_of? Gtk::TreeIter)
+      entry = Entry.new(iter)
+      @file.get_child(entry.filename)
+    end
+    
     def enter(place)
       if place.kind_of? Gtk::TreeIter
-        enter_iter(place)
-      elsif place.kind_of? GLib::File
-        enter_file(place)
-      else
-        raise "unknown type: #{place.class}"
+        place = iter_to_file(place)
       end
+      
+      enter_file(place)
     end
     
     def leave
@@ -89,19 +93,6 @@ module Ginko::Directory
     #######
     private
     #######
-    
-    def enter_iter(iter)
-      check_argument(iter.kind_of? Gtk::TreeIter)
-      
-      entry = Entry.new(iter)
-      new_file = @file.get_child(entry.filename)
-      
-      if new_file.query_info.directory?
-        enter(new_file)
-      end
-      
-      new_file
-    end
     
     def enter_file(file)
       check_argument(file.kind_of? GLib::File)
