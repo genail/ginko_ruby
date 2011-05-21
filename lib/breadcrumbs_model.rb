@@ -3,47 +3,51 @@ require 'callbacks'
 
 require 'preconditions'
 
-class BreadcrumbsModel
-  extend Callbacks
-  include Preconditions
-  
-  callback :on_file_changed
-  
-  def initialize
-    @file = GLib::File.new_for_path("/")
-  end
-  
-  def file=(file)
-    check_argument(!file.nil?)
+module Ginko::Breadcrumbs
+
+  class Model
+    extend Callbacks
+    include Preconditions
     
-    @file = file
-    on_file_changed
-  end
-  
-  attr_reader :file
-  
-  def path_components
-    components = []
+    callback :on_file_changed
     
-    dir = @file
-    while dir.has_parent?(nil)
-      components << dir
+    def initialize
+      @file = GLib::File.new_for_path("/")
+    end
+    
+    def file=(file)
+      check_argument(!file.nil?)
       
-      dir = dir.parent
+      @file = file
+      on_file_changed
     end
     
-    components.reverse
-  end
-  
-  def contents(file)
-    check_argument(file.kind_of? GLib::File)
-    c = []
+    attr_reader :file
     
-    file.each do |fileinfo|
-      c << file.get_child(fileinfo.name)
+    def path_components
+      components = []
+      
+      dir = @file
+      while dir.has_parent?(nil)
+        components << dir
+        
+        dir = dir.parent
+      end
+      
+      components.reverse
     end
     
-    c.sort { |a, b| a.basename <=> b.basename }
-  end
-  
-end
+    def contents(file)
+      check_argument(file.kind_of? GLib::File)
+      c = []
+      
+      file.each do |fileinfo|
+        c << file.get_child(fileinfo.name)
+      end
+      
+      c.sort { |a, b| a.basename <=> b.basename }
+    end
+    
+  end # class
+
+end # module
