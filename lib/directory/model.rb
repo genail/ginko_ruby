@@ -18,9 +18,9 @@ module Ginko::Directory
         if arg.kind_of? Gtk::TreeIter
           # existing entry
           @iter = arg
-        elsif arg.kind_of? Gtk::TreeStore
+        elsif arg.kind_of? Gtk::ListStore
           # new entry
-          @iter = arg.append(nil)
+          @iter = arg.append()
           @iter[COL_WEIGHT] = 400
         else
           raise "unknown type: #{arg.class}"
@@ -58,7 +58,7 @@ module Ginko::Directory
     end
     
     def initialize
-      @store = Gtk::TreeStore.new(String, Integer, String)
+      @store = Gtk::ListStore.new(String, Integer, String)
       
       enter(GLib::File.new_for_path("/"))
     end

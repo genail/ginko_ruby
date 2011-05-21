@@ -6,7 +6,7 @@ require 'directory/controller'
 
 module Ginko
   window = Gtk::Window.new(Gtk::Window::TOPLEVEL)
-  window.set_default_size(320, 240);
+  window.set_default_size(320, 480);
   
   window.signal_connect("delete_event") { Gtk.main_quit; exit! }
   
