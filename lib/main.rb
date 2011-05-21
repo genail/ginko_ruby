@@ -1,7 +1,7 @@
 module Ginko
 end
 
-require 'directory_controller'
+require 'directory/controller'
 
 module Ginko
   window = Gtk::Window.new(Gtk::Window::TOPLEVEL)

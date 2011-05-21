@@ -1,9 +1,9 @@
 require 'gtk2'
 require 'gio2'
 
-require 'directory_model'
-require 'directory_view'
-require 'breadcrumbs_controller'
+require 'directory/model'
+require 'directory/view'
+require 'breadcrumbs/controller'
 
 module Ginko::Directory
 

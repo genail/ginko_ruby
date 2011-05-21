@@ -1,6 +1,6 @@
 require 'callbacks'
-require 'breadcrumbs_model'
-require 'breadcrumbs_view'
+require 'breadcrumbs/model'
+require 'breadcrumbs/view'
 
 module Ginko::Breadcrumbs
 
