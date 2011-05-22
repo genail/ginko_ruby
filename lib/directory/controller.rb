@@ -3,6 +3,7 @@ require 'gio2'
 
 require 'directory/model'
 require 'directory/view'
+require 'directory/cursor'
 require 'breadcrumbs/controller'
 
 module Ginko::Directory
@@ -12,12 +13,18 @@ module Ginko::Directory
       @breadcrumbs = Ginko::Breadcrumbs::Controller.new(context)
       
       @model = Model.new
-      @view = View.new(@model, @breadcrumbs.widget)
+      @view = View.new(context, @model, @breadcrumbs.widget)
       
-      @view.on_key_pressed do |e|
+      init_contents
+      init_breadcrumbs
+      init_search_bar
+    end
+    
+    def init_contents
+      @view.contents_key_pressed do |e|
         cursor = @view.cursor
         
-        unless cursor.nil?
+        if cursor.visible?
           case e.keyval
           when Gdk::Keyval::GDK_Insert
             @model.toggle_selection(cursor.iter)
@@ -40,14 +47,47 @@ module Ginko::Directory
           end
         end
       end
-      
+    end
+    
+    def init_breadcrumbs
       @breadcrumbs.on_breadcrumb_pressed do |file|
         if file.query_info.directory?
           @model.enter(file)
           @breadcrumbs.file = file
         end
       end
+    end
+    
+    def init_search_bar
+      @view.search_bar.phase_changed do |text|
+        @model.search_filter = text
+        @model.refilter
+        
+        cursor = @view.cursor
+        unless cursor.visible?
+          cursor.set_on_first
+        end
+      end
       
+      @view.search_bar.key_pressed do |e|
+        case e.keyval
+          when Gdk::Keyval::GDK_Return
+            cursor = @view.cursor
+            if cursor.visible?
+              @model.search_filter = nil
+              @model.enter(cursor)
+              
+              @view.close_searchbar
+            end
+            
+          when Gdk::Keyval::GDK_Up
+            @view.treeview.grab_focus
+            @view.cursor.move_up
+          when Gdk::Keyval::GDK_Down
+            @view.treeview.grab_focus
+            @view.cursor.move_down
+        end
+      end
     end
     
     def widget

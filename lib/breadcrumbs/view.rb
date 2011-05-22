@@ -104,7 +104,7 @@ module Ginko::Breadcrumbs
     end
     
     def register_accelerators
-      @context.add_accel(Gdk::Keyval::GDK_E, Gdk::Window::MOD1_MASK, 0) do
+      @context.add_accel(Gdk::Keyval::GDK_D, Gdk::Window::MOD1_MASK, 0) do
         if @mode == :buttons
           toggle_mode
         end

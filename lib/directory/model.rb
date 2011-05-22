@@ -11,7 +11,8 @@ module Ginko::Directory
     COL_WEIGHT = 1
     COL_FILENAME = 2
     
-    attr_reader :store
+    attr_reader :filtered_store
+    alias :store :filtered_store
     
     class Entry
       def initialize(arg)
@@ -59,6 +60,16 @@ module Ginko::Directory
     
     def initialize
       @store = Gtk::ListStore.new(String, Integer, String)
+      @filtered_store = Gtk::TreeModelFilter.new(@store)
+      
+      @filtered_store.set_visible_func do |m, i|
+        unless @search_filter.nil?
+          Entry.new(i).filename != nil &&
+          Entry.new(i).filename.include?(@search_filter)
+        else
+          true
+        end
+      end
       
       enter(GLib::File.new_for_path("/"))
     end
@@ -75,8 +86,8 @@ module Ginko::Directory
     end
     
     def enter(place)
-      if place.kind_of? Gtk::TreeIter
-        place = iter_to_file(place)
+      if place.kind_of? Cursor
+        place = iter_to_file(place.iter)
       end
       
       enter_file(place)
@@ -88,6 +99,14 @@ module Ginko::Directory
       end
       
       @file
+    end
+    
+    def search_filter=(search_filter)
+      @search_filter = search_filter
+    end
+    
+    def refilter
+      @filtered_store.refilter
     end
     
     #######
