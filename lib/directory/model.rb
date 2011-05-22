@@ -66,7 +66,7 @@ module Ginko::Directory
       @filtered_store.set_visible_func do |m, i|
         unless @search_filter.nil?
           Entry.new(i).filename != nil &&
-          Entry.new(i).filename.include?(@search_filter)
+          Entry.new(i).filename.downcase.include?(@search_filter.downcase)
         else
           true
         end
