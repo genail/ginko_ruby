@@ -59,7 +59,9 @@ module Ginko::Directory
       end
     end
     
-    def initialize
+    def initialize(context)
+      @context = context
+      
       @store = Gtk::ListStore.new(String, Integer, String)
       @filtered_store = Gtk::TreeModelFilter.new(@store)
       
@@ -117,6 +119,8 @@ module Ginko::Directory
     def enter_file(file)
       check_argument(file.kind_of? GLib::File)
       
+      t1 = Time.now
+      
       lock
       begin
         
@@ -125,13 +129,17 @@ module Ginko::Directory
         
         @file = file
         
-        file.each do |fileinfo|
+        file.each(GLib::FileAttribute::STANDARD_DISPLAY_NAME + "," + GLib::FileAttribute::STANDARD_NAME) do |fileinfo|
           entry = Entry.new(@store)
           entry.filename = fileinfo.display_name
         end
       ensure
         unlock
       end
+      
+      t2 = Time.now
+      @context.log.info "entered #{file} in #{t2 - t1}s"
+      $stdout.flush
     end
     
     # locking should be used when editing tree contents

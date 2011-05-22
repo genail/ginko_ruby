@@ -12,7 +12,7 @@ module Ginko::Directory
     def initialize(context)
       @breadcrumbs = Ginko::Breadcrumbs::Controller.new(context)
       
-      @model = Model.new
+      @model = Model.new(context)
       @view = View.new(context, @model, @breadcrumbs.widget)
       
       init_contents

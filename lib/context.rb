@@ -1,6 +1,14 @@
+require 'logger'
+
 module Ginko
   class Context
+    attr_accessor :log
     attr_accessor :main_window
+    
+    def initialize
+      @log = Logger.new(STDOUT)
+      @log.level = Logger::INFO
+    end
     
     def add_accel(key, mods, flags, &closure)
       guard(closure)
