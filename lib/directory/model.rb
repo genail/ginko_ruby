@@ -1,4 +1,5 @@
 require 'gio2'
+require 'extended/glib_file'
 
 require 'preconditions'
 
@@ -120,7 +121,7 @@ module Ginko::Directory
       begin
         
         @store.clear
-        raise "not a directory" unless file.query_file_type == GLib::File::TYPE_DIRECTORY
+        raise "not a directory" unless file.directory?
         
         @file = file
         

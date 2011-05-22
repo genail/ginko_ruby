@@ -24,27 +24,30 @@ module Ginko::Directory
       @view.contents_key_pressed do |e|
         cursor = @view.cursor
         
-        if cursor.visible?
-          case e.keyval
-          when Gdk::Keyval::GDK_Insert
+        case e.keyval
+        when Gdk::Keyval::GDK_Insert
+          if cursor.visible?
             @model.toggle_selection(cursor.iter)
             cursor.move_down
-            
-          when Gdk::Keyval::GDK_Return
+          end
+          
+        when Gdk::Keyval::GDK_Return
+          if cursor.visible?
             iter = cursor.iter
             file = @model.iter_to_file(iter)
             
             if file.query_info.directory?
-              @model.enter(file)
-              @breadcrumbs.file = file
+              enter(file)
+              
             else
               launch(file)
             end
-          
-          when Gdk::Keyval::GDK_BackSpace
-            file = @model.leave
-            @breadcrumbs.file = file
           end
+        
+        when Gdk::Keyval::GDK_BackSpace
+          file = @model.leave
+          @breadcrumbs.file = file
+          @view.cursor.set_on_first
         end
       end
     end
@@ -52,8 +55,7 @@ module Ginko::Directory
     def init_breadcrumbs
       @breadcrumbs.on_breadcrumb_pressed do |file|
         if file.query_info.directory?
-          @model.enter(file)
-          @breadcrumbs.file = file
+          enter(file)
         end
       end
     end
@@ -74,11 +76,11 @@ module Ginko::Directory
           when Gdk::Keyval::GDK_Return
             cursor = @view.cursor
             if cursor.visible?
-              @model.search_filter = nil
-              @model.enter(cursor)
-              
-              @view.close_searchbar
+              enter(cursor)
             end
+            
+          when Gdk::Keyval::GDK_Escape
+            cancel_searchbar
             
           when Gdk::Keyval::GDK_Up
             @view.treeview.grab_focus
@@ -97,6 +99,31 @@ module Ginko::Directory
     #######
     private
     #######
+    
+    def enter(cursor_or_file)
+      if cursor_or_file.kind_of? Cursor
+        file = @model.iter_to_file(cursor_or_file.iter)
+      else
+        file = cursor_or_file
+      end
+      
+      close_searchbar
+      
+      @model.enter(file)
+      @breadcrumbs.file = file
+      @view.cursor.set_on_first
+    end
+    
+    def close_searchbar
+      @model.search_filter = nil
+      @view.close_searchbar
+      @view.treeview.grab_focus
+    end
+    
+    def cancel_searchbar
+      close_searchbar
+      @model.refilter
+    end
     
     def launch(file)
       content_type = file.query_info.content_type

@@ -30,8 +30,12 @@ module Ginko::Directory
     end
     
     def close_searchbar
-      @vbox.remove(@search_bar.widget)
-      @treeview.grab_focus
+      @search_bar_open ||= false
+      
+      if @search_bar_open
+        @vbox.remove(@search_bar.widget)
+        @search_bar_open = false
+      end
     end
     
     #######
@@ -55,10 +59,12 @@ module Ginko::Directory
     
     def build_ui_directory_contents
       scrolls = Gtk::ScrolledWindow.new();
+      @vbox.pack_start(scrolls)
+      
       @treeview = Gtk::TreeView.new(@directory_model.store)
       scrolls.add(@treeview)
       
-      @vbox.pack_start(scrolls)
+      @treeview.enable_search = false
       
       @treeview.selection.mode = Gtk::SELECTION_SINGLE
       renderer = Gtk::CellRendererText.new
@@ -78,6 +84,7 @@ module Ginko::Directory
       @context.add_accel(Gdk::Keyval::GDK_S, Gdk::Window::CONTROL_MASK, 0) do
         @vbox.pack_end(@search_bar.widget, false, false)
         @search_bar.grab_focus
+        @search_bar_open = true
       end
         
     end
