@@ -67,8 +67,9 @@ module Ginko::Directory
       
       @filtered_store.set_visible_func do |m, i|
         unless @search_filter.nil?
-          Entry.new(i).filename != nil &&
-          Entry.new(i).filename.downcase.include?(@search_filter.downcase)
+          entry = Entry.new(i)
+          entry.filename != nil &&
+          entry.filename.downcase.include?(@search_filter.downcase)
         else
           true
         end
@@ -138,7 +139,7 @@ module Ginko::Directory
       end
       
       t2 = Time.now
-      @context.log.info "entered #{file} in #{t2 - t1}s"
+      @context.log.info "entered #{file.path} in #{t2 - t1}s"
       $stdout.flush
     end
     
