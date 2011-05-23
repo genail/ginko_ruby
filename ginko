@@ -3,4 +3,6 @@ require 'rubygems'
 
 $LOAD_PATH.unshift(File.dirname(__FILE__) + '/lib/') unless $LOAD_PATH.include?(File.dirname(__FILE__) + '/lib/')
 
-require 'main.rb'
+require 'wrapper/wrapper'
+
+wrap(File.dirname(__FILE__) + "/lib", "main.rb")
