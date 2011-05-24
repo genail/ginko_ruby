@@ -12,13 +12,13 @@ def wrap(path, command)
     IO.popen([
                 {"RUBYLIB" => path},
                 path + "/" + command,
-                :err => [:child, :out]]) { |f|
+                :err => [:child, :out]]) do |f|
       until f.eof?
         line = f.gets
         log << line
         puts line
       end
-    }
+    end
   end
   
   puts "#{command} exited with code #{$?}"
