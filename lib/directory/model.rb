@@ -79,13 +79,13 @@ module Ginko::Directory
     end
     
     def toggle_selection(iter)
-      entry = Entry.new(iter)
+      entry = Entry.new(unfilter(iter))
       entry.toggle_selection
     end
     
     def iter_to_file(iter)
       check_argument(iter.kind_of? Gtk::TreeIter)
-      entry = Entry.new(iter)
+      entry = Entry.new(unfilter(iter))
       @file.get_child(entry.filename)
     end
     
@@ -116,6 +116,10 @@ module Ginko::Directory
     #######
     private
     #######
+    
+    def unfilter(iter)
+      @filtered_store.convert_iter_to_child_iter(iter)
+    end
     
     def enter_file(file)
       check_argument(file.kind_of? GLib::File)
