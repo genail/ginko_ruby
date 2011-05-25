@@ -2,7 +2,9 @@ require 'gio2'
 require 'extended/glib_file'
 
 require 'preconditions'
+
 require 'format/size_format'
+require 'format/date_format'
 
 module Ginko::Directory
 
@@ -19,6 +21,9 @@ module Ginko::Directory
     
     attr_reader :filtered_store
     alias :store :filtered_store
+    
+    attr_reader :file_count # including directories
+    attr_reader :directory_count
     
     class Entry
       def initialize(arg)
@@ -157,12 +162,28 @@ module Ginko::Directory
         
         @file = file
         
-        size_format = Ginko::Format::SizeFormat.new
+        @file_count = 0 # including directories
+        @directory_count = 0
         
-        file.each do |fileinfo|
+        size_format = Ginko::Format::SizeFormat.new
+        date_format = Ginko::Format::DateFormat.new
+        
+        query =
+          GLib::FileAttribute::STANDARD_DISPLAY_NAME + "," +
+          GLib::FileAttribute::STANDARD_NAME + "," +
+          GLib::FileAttribute::STANDARD_SIZE + "," +
+          GLib::FileAttribute::STANDARD_TYPE + "," +
+          GLib::FileAttribute::TIME_MODIFIED
+        
+        file.each(query) do |fileinfo|
           entry = Entry.new(@store)
           entry.filename = fileinfo.display_name
+          entry.ext = File.extname(fileinfo.display_name)
           entry.size = size_format.format(fileinfo.size)
+          entry.date = date_format.format(fileinfo.modification_time)
+          
+          @file_count += 1
+          @directory_count += 1 if fileinfo.directory?
         end
       ensure
         unlock
@@ -170,6 +191,8 @@ module Ginko::Directory
       
       t2 = Time.now
       @context.log.info "entered #{file.path} in #{t2 - t1}s"
+      @context.log.info "found #{@file_count - @directory_count} files " +
+        "and #{@directory_count} directories"
       $stdout.flush
     end
     
