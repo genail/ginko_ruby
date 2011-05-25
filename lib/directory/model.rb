@@ -2,6 +2,7 @@ require 'gio2'
 require 'extended/glib_file'
 
 require 'preconditions'
+require 'format/size_format'
 
 module Ginko::Directory
 
@@ -11,6 +12,10 @@ module Ginko::Directory
     COL_COLOR = 0
     COL_WEIGHT = 1
     COL_FILENAME = 2
+    COL_EXT = 3
+    COL_SIZE = 4
+    COL_DATE = 5
+    COL_ATTR = 6
     
     attr_reader :filtered_store
     alias :store :filtered_store
@@ -33,13 +38,23 @@ module Ginko::Directory
         #end
       end
       
-      def filename
-        @iter[COL_FILENAME]
+      def Entry.iter_accessor(name, column_idx)
+        class_eval <<-EOF
+          def #{name}
+            @iter[#{column_idx}]
+          end
+          
+          def #{name}=(arg)
+            @iter[#{column_idx}] = arg.to_s
+          end
+        EOF
       end
       
-      def filename=(text)
-        @iter[COL_FILENAME] = text.to_s
-      end
+      iter_accessor :filename, COL_FILENAME
+      iter_accessor :ext, COL_EXT
+      iter_accessor :size, COL_SIZE
+      iter_accessor :date, COL_DATE
+      iter_accessor :attr, COL_ATTR
       
       def selected
         @iter[COL_COLOR] != nil
@@ -62,7 +77,15 @@ module Ginko::Directory
     def initialize(context)
       @context = context
       
-      @store = Gtk::ListStore.new(String, Integer, String)
+      @store = Gtk::ListStore.new(
+          String, # color
+          Integer, # weight
+          String, # filename
+          String, # ext
+          String, # size
+          String, # date
+          String # attr
+          )
       @filtered_store = Gtk::TreeModelFilter.new(@store)
       
       @filtered_store.set_visible_func do |m, i|
@@ -134,9 +157,12 @@ module Ginko::Directory
         
         @file = file
         
-        file.each(GLib::FileAttribute::STANDARD_DISPLAY_NAME + "," + GLib::FileAttribute::STANDARD_NAME) do |fileinfo|
+        size_format = Ginko::Format::SizeFormat.new
+        
+        file.each do |fileinfo|
           entry = Entry.new(@store)
           entry.filename = fileinfo.display_name
+          entry.size = size_format.format(fileinfo.size)
         end
       ensure
         unlock

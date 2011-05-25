@@ -1,4 +1,8 @@
 #!/usr/bin/env ruby1.9.1
+require 'rubygems'
+
+require 'i18n'
+I18n.load_path << File.dirname(__FILE__) + "/../locale/en.yml"
 
 module Ginko
 end

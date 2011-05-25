@@ -1,3 +1,5 @@
+require 'i18n'
+
 require 'gtk2'
 require 'callbacks'
 require 'directory/search_bar'
@@ -67,16 +69,32 @@ module Ginko::Directory
       @treeview.enable_search = false
       
       @treeview.selection.mode = Gtk::SELECTION_SINGLE
-      renderer = Gtk::CellRendererText.new
-      col = Gtk::TreeViewColumn.new("Filename", renderer,
-                                :background => 0, :weight => 1, :text => 2)
-      @treeview.append_column(col)
+      
+      add_column(I18n.t("directory_view_filename"), 0,
+                 :text => Model::COL_FILENAME)
+      add_column(I18n.t("directory_view_extension"), 0,
+                 :text => Model::COL_EXT)
+      add_column(I18n.t("directory_view_size"), 1,
+                 :text => Model::COL_SIZE)
+      add_column(I18n.t("directory_view_date"), 0,
+                 :text => Model::COL_DATE)
+      add_column(I18n.t("directory_view_attr"), 0,
+                 :text => Model::COL_ATTR)
       
       @treeview.add_events(Gdk::Event::KEY_PRESS)
       @treeview.signal_connect("key-press-event") do |w, e|
         #p "#{e.keyval}, Gdk::Keyval::GDK_#{Gdk::Keyval.to_name(e.keyval)}"
         contents_key_pressed(e)
       end
+    end
+    
+    def add_column(name, align, properties)
+      renderer = Gtk::CellRendererText.new
+      renderer.xalign = align
+      
+      properties[:background] = Model::COL_COLOR
+      col = Gtk::TreeViewColumn.new(name, renderer, properties)
+      @treeview.append_column(col)
     end
     
     def build_ui_searchbar
